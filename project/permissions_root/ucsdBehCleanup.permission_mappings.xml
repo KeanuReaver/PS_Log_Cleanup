@@ -1,0 +1,31 @@
+<permission_mappings>
+    <permission name="/admin/reports/runreports.html">
+        <implies allow="post">/ws/schema/table/u_def_ext_log</implies>
+        <implies allow="put">/ws/schema/table/u_def_ext_log/#</implies>
+        <implies allow="delete">/ws/schema/table/u_def_ext_log/#</implies>
+        <implies allow="get">/ws/schema/table/u_def_ext_log/#</implies>
+        <implies allow="get">/ws/schema/table/u_def_ext_log/count</implies>
+        <implies allow="get">/ws/schema/table/u_def_ext_log</implies>
+
+        <implies allow="post">/ws/schema/table/s_ia_log_x</implies>
+        <implies allow="put">/ws/schema/table/s_ia_log_x/#</implies>
+        <implies allow="delete">/ws/schema/table/s_ia_log_x/#</implies>
+        <implies allow="get">/ws/schema/table/s_ia_log_x/#</implies>
+        <implies allow="get">/ws/schema/table/s_ia_log_x/count</implies>
+        <implies allow="get">/ws/schema/table/s_ia_log_x</implies>
+
+        <implies allow="post">/ws/schema/table/u_ucsd_log_extensions</implies>
+        <implies allow="put">/ws/schema/table/u_ucsd_log_extensions/#</implies>
+        <implies allow="delete">/ws/schema/table/u_ucsd_log_extensions/#</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_log_extensions/#</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_log_extensions/count</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_log_extensions</implies>
+
+        <implies allow="post">/ws/schema/table/u_ucsd_beh_definitions</implies>
+        <implies allow="put">/ws/schema/table/u_ucsd_beh_definitions/#</implies>
+        <implies allow="delete">/ws/schema/table/u_ucsd_beh_definitions/#</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_beh_definitions/#</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_beh_definitions/count</implies>
+        <implies allow="get">/ws/schema/table/u_ucsd_beh_definitions</implies>
+    </permission>
+</permission_mappings>

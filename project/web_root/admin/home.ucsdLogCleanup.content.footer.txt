@@ -1,0 +1,307 @@
+~[if#logCleanupSchool.is.a.school]
+<div id="log-cleanup-hidden-div" class="hide" hidden>
+    <div id="log-cleanup-alerts">
+        <div id="log-cleanup-content-spinner"
+             class="spinnerDiv log-cleanup-content-spinner"
+             style="margin-left: 20px; display: inline-flex; justify-content: space-between">
+            <div class="progress small" data-pss-wait-spinner="small"></div>
+            <div>&nbsp;&nbsp;Checking for logs to clean up <span id="log-cleanup-ellipsis"></span></div>
+        </div>
+
+        <div class="feedback-alert" style="cursor: pointer; margin-top: 10px; font-weight: bold;">
+            <div id="log-cleanup-title">
+                
+            </div>
+            <div id="log-cleanup-content-block"
+                 style="display: none; margin-top: 5px;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const locationMap = {
+            'CLA': '5',
+            'LUC': '4',
+            'HAL': '9',
+            'AUD': '16',
+            'RES': '1',
+            'GYM': '8',
+            'EAC': '18',
+            'EMC': '18',
+            'MEC': '10',
+            'PLA': '15',
+            'ECE': '16',
+            'BUS': '2',
+            'BUZ': '3',
+            'OFC': '12',
+            'GSP': '6',
+            'OFF': '13',
+            'PAL': '14',
+            'LOR': '11',
+            'OTH': '20'
+        };
+
+        const moArray = [
+            'AVA', 'AVP', 'AVT', 'OAA',
+            'OIA', 'OPA', 'UMO', 'OMO'
+        ];
+
+        const incidentTypeAssoc = {
+            'EL-AIL': '1', 'EL-AIL2': '1', 'EL-AIL3': '1', 'EL-AIL4': '1',
+            'MH-AIL': '1',  'MH-AIL2': '1', 'MH-AIL3': '1', 'MH-AIL4': '1',
+            'EL-ALC': '2',  'EL-ALC2': '2', 'EL-ALC3': '2',
+            'MH-ALC': '2',  'MH-ALC2': '2', 'MH-ALC3': '2',
+            'EL-ARS': '3',  'MH-ARS': '3',
+            'MH-COT': '4',  'MH-COT2': '4', 'MH-COT3': '4',
+            'EL-COT': '4',  'EL=COT2': '4',
+            'EL-BUL': '5',  'MH-BUL': '5',
+            'EL-FIR': '6',  'EL-FIR2': '6', 'MH-FIR': '6', 'MH-FIR2': '6', 'MH-FIR3': '6',
+            'EL-DEF': '7',  'EL-DEF2': '7', 'EL-DEF3': '7', 'MH-DEF': '7', 'MH-DEF2': '7', 'MH-DEF3': '7',
+            'EL-DIS': '9',  'EL-DIS2': '9', 'EL-DIS3': '9', 'MH-DIS': '9', 'MH-DIS2': '9', 'MH-DIS3': '9',
+            'EL-DCV': '10', 'MH-DCV': '10',
+            'EL-DRG': '11', 'EL-DRG2': '11', 'EL-DRG3': '11', 'MH-DRG': '11', 'MH-DRG2': '11', 'MH-DRG3': '11',
+            'EL-FRG': '12', 'EL-FRG2': '12', 'MH-FRG': '12',
+            'EL-GAF': '13', 'MH-GAF': '13',
+            'EL-HRS': '14', 'MH-HRS': '14',
+            'EL-IAF': '15', 'EL-IAF2': '15', 'MH-IAF': '15', 'MH-IAF2': '15',
+            'EL-ILO': '16', 'EL-ILO2': '16', 'EL-ILO3': '16',
+            'EL-LCH': '17', 'EL-LCH2': '17', 'EL-LCH3': '17', 'MH-LCH': '17', 'MH-LCH2': '17', 'MH-LCH3': '17',
+            'EL-PAI': '18', 'MH-PAI': '18',
+            'EL-PAI2': '19','MH-PAI2': '19',
+            'EL-PAW': '20', 'EL-PAW2': '20','EL-PAW3': '20','MH-PAW': '20','MH-PAW2': '20','MH-PAW3': '20',
+            'EL-PFI': '21', 'MH-PFI': '21',
+            'EL-PFI2': '22','MH-PFI2': '22',
+            'EL-PFW': '23', 'MH-PFW': '23',
+            'EL-PDA': '24', 'EL-PDA2': '24','EL-PDA3': '24','MH-PDA': '24',
+            'MH-ILO': '25','MH-ILO2': '25','MH-ILO3': '25',
+            'MH-TAR': '27',
+            'EL-TVI': '28','EL-TVI2': '28','EL-TVI3': '28','EL-TVI4': '28',
+            'MH-TVI': '28','MH-TVI2': '28','MH-TVI3': '28','MH-TVI4': '28',
+            'EL-THF': '29','EL-THF2': '29','EL-THF3': '29','EL-THF4': '29',
+            'MH-THF': '29','MH-THF2': '29','MH-THF3': '29',
+            'EL-TOB': '30','EL-TOB2': '30','EL-TOB3': '30','MH-TOB': '30','MH-TOB2': '30','MH-TOB3': '30',
+            'EL-WEP': '32','EL-WEP2': '32','EL-WEP3': '32','MH-WEP': '32','MH-WEP2': '32','MH-WEP3': '32',
+            'EL-OTH': '33','EL-OTH2': '33','MH-OTH': '33','MH-OTH2': '33'
+        };
+
+        function logCleanupAlertObserver(params) {
+            new MutationObserver(function(mutations, observer) {
+                const el = document.getElementById(params.id);
+                if (el) {
+                    observer.disconnect();
+                    params.done(el);
+                }
+            }).observe(params.parent || document, {
+                subtree: !!params.recursive || !params.parent,
+                childList: true
+            });
+        }
+
+        logCleanupAlertObserver({
+            id: 'search_switch_btn',
+            parent: document.querySelector('.container'),
+            recursive: false,
+            done: function(el) {
+                $j('pss-studentsearch').prepend($j('#log-cleanup-alerts'));
+            }
+        });
+
+        $j(function() {
+            let ellipsisInterval = null;
+
+            function startEllipsisAnimation() {
+                const el = document.getElementById('log-cleanup-ellipsis');
+                if (!el) return;
+                const steps = ['', '. ', '. . ', '. . . '];
+                let idx = 0;
+                ellipsisInterval = setInterval(() => {
+                    el.textContent = steps[idx];
+                    idx = (idx + 1) % steps.length;
+                }, 500);
+            }
+
+            function stopEllipsisAnimation() {
+                clearInterval(ellipsisInterval);
+                ellipsisInterval = null;
+                const el = document.getElementById('log-cleanup-ellipsis');
+                if (el) el.textContent = '';
+            }
+
+            function getLogs() {
+                return $j.ajax({
+                        method: 'GET',
+                        url: '/admin/queries/pullSchoolLogEntries.json',
+                        dataType: 'json'
+                    })
+                    .then(function(response) {
+                        return response.filter(obj => Object.keys(obj).length > 0);
+                    })
+                    .catch(function(err) {
+                        console.error('Error pulling school logs:', err);
+                        return $j.Deferred().reject(err);
+                    });
+            }
+
+            function bucketCounts(yearLogs) {
+                const counts = {
+                    marked_sus:                         0,
+                    fix_number:                         0,
+                    missing_sub:                        0,
+                    missing_incident_type:              0,
+                    missing_cons:                       0,
+                    missing_loc:                        0,
+                    missing_inc_time:                   0,
+                    copy_urbandale_from_state_action:   0,
+                    state_action_copy:                  0,
+                    state_incident_copy:                0,
+                    state_loc_copy:                     0,
+                    state_mo_copy:                      0,
+                    state_dur_assign:                   0
+                };
+
+                for (const log of yearLogs) {
+                    if (String(log.suspensionletter) === '1') {
+                        counts.marked_sus++;
+                    }
+
+                    if (!log.student_number || log.student_number === '0') {
+                        counts.fix_number++;
+                    }
+
+                    if (!log.subtype) {
+                        counts.missing_sub++;
+                    }
+
+                    if (!log.discipline_incidenttype) {
+                        counts.missing_incident_type++;
+                    }
+
+                    if (!log.consequence) {
+                        counts.missing_cons++;
+                    }
+
+                    if (!log.location) {
+                        counts.missing_loc++;
+                    }
+                    
+                    if (!log.incident_time) {
+                        counts.missing_inc_time++;
+                    }
+                    
+                    if (!log.consequence && log.action_taken) {
+                        counts.copy_urbandale_from_state_action++;
+                    }
+
+                    if (log.subtype !== 'Minor') {
+                        if (log.consequence && String(log.consequence) !== String(log.action_taken)) {
+                            counts.state_action_copy++;
+                        }
+
+                        const expectedPB = incidentTypeAssoc[String(log.discipline_incidenttype)] || null;
+                        if ((log.discipline_incidenttype && String(expectedPB) !== String(log.problem_behavior)) || (log.subtype && !log.major_or_minor)) {
+                            counts.state_incident_copy++;
+                        }
+
+                        const mappedLoc = locationMap[String(log.location).trim()] || null;
+                        if (log.location && String(mappedLoc) !== String(log.incident_location)) {
+                            counts.state_loc_copy++;
+                        }
+
+                        const moIndex = moArray.indexOf(log.log_motivation);
+                        if (log.log_motivation && moIndex !== -1 && (moIndex + 1) !== parseInt(log.motivation)) {
+                            counts.state_mo_copy++;
+                        }
+
+                        if (log.action_taken && Number(log.action_taken) <= 4 && (!log.duration_assigned || log.duration_assigned === '0')) {
+                            counts.state_dur_assign++;
+                        }
+                    }
+                }
+
+                return counts;
+            }
+
+            function renderBucketSummary(counts) {
+                const titleDiv   = $j('#log-cleanup-title');
+                const contentDiv = $j('#log-cleanup-content-block');
+
+                titleDiv.empty();
+                contentDiv.empty();
+
+                let totalIssues = 0;
+                const displayNames = {
+                    marked_sus:                         'Logs marked for suspension',
+                    fix_number:                         'Logs missing student_number',
+                    missing_sub:                        'Logs missing subtype',
+                    missing_incident_type:              'Logs missing infraction type',
+                    missing_cons:                       'Logs missing most stringent action taken',
+                    missing_loc:                        'Logs missing location',
+                    missing_inc_time:                   'Logs missing infraction time',
+                    copy_urbandale_from_state_action:   'Logs missing Urbandale Action Taken but have State Action Taken',
+                    state_action_copy:                  'State Action Needs Copied',
+                    state_incident_copy:                'State Incident Needs Copied',
+                    state_loc_copy:                     'State Location Needs Copied',
+                    state_mo_copy:                      'State Motivation Needs Copied',
+                    state_dur_assign:                   'State Duration Needs Assigned'
+                };
+
+                Object.keys(counts).forEach(key => {
+                    totalIssues += counts[key];
+                });
+
+                if (totalIssues === 0) {
+                    $j('#log-cleanup-alerts').hide();
+                    return;
+                }
+
+                titleDiv.text(`Log Discrepancies – ${totalIssues} – (click to expand)`);
+                titleDiv.show();
+
+                Object.keys(counts).forEach(key => {
+                    const cnt = counts[key];
+                    if (cnt > 0) {
+                        const lineHtml = `
+                            <div style="margin-bottom: 0.5em;">
+                                <a href="/admin/behaviorCleanup.html" style="text-decoration: underline;">
+                                    ${displayNames[key]}: ${cnt}
+                                </a>
+                            </div>`;
+                        contentDiv.append(lineHtml);
+                    }
+                });
+                contentDiv.hide();
+
+                titleDiv.off('click').on('click', function() {
+                    contentDiv.toggle();
+                });
+
+                $j('#log-cleanup-content-spinner').hide();
+            }
+
+            function getErrorCounts() {
+                $j('#log-cleanup-alerts').show();
+                $j('#log-cleanup-content-block').hide();
+                $j('#log-cleanup-title').hide();
+
+                startEllipsisAnimation();
+
+                getLogs()
+                    .then(function(allLogs) {
+                        stopEllipsisAnimation();
+                        const counts = bucketCounts(allLogs);
+                        renderBucketSummary(counts);
+                    })
+                    .fail(function() {
+                        stopEllipsisAnimation();
+                        $j('#log-cleanup-alerts').hide();
+                    });
+            }
+
+            getErrorCounts();
+        });
+    })();
+</script>
+[/if#logCleanupSchool]

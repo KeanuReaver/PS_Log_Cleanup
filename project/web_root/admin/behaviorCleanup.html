@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UCSD - Behavior Log Cleanup</title>
+
+    ~[wc:commonscripts]
+
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen">
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+</head>
+<body>
+    ~[wc:admin_header_css]
+    <!-- breadcrumb start <a href="first_link" target="_top">first</a> &gt; <a href="second_link" target="_top">Second</a> &gt; here-->UCSD - Behavior Log Cleanup<!-- breadcrumb end -->
+    <!-- start of main menu and content -->
+    ~[wc:admin_navigation_css]
+    <!-- Start of Page -->
+    <h1>UCSD - Behavior Log Cleanup - ~(yearname)</h1>
+    <!-- start of content area -->
+    ~[if#checkSec.security.pagenone=/admin/students/customlogentry.html]
+    <div class="feedback-alert">Access Denied</div>
+    [else#checkSec]
+    ~[if#checkSchool.is.a.school]
+    <div    data-require-path="/scripts/components/ucsdBehaviorCleanup/index.js"
+            data-module-name="logCleanupModule"
+            data-ng-controller="BehaviorCleanupCtrl"
+            data-ng-init="currentSchool='~(curschoolid)'"
+            data-ng-cloak>
+        <div    data-log-edit-drawer
+                data-log-drawer-open="logDrawerOpen"
+                data-current-log="currentLog"
+                data-current-school="currentSchool"></div>
+        <div class="feedback-alert">Click tile to see instructions and associated logs.</div>
+        <div class="box-round" data-ng-show="issuesExist">
+            <div class="carousel-container">
+                <button class="carousel-arrow left" data-ng-click="scrollCarousel('left')">‹</button>
+                <div class="carousel-wrapper">
+                    <div class="issue-carousel" id="issue-carousel">
+                        <div    class="issue-tile"
+                                data-ng-repeat="(key, issue) in issueBuckets"
+                                data-ng-click="setFocusedIssue(key, issue)"
+                                data-ng-class="[ issue.color, { active: focusedIssueKey === key } ]"
+                                data-ng-show="issue.logs.length > 0">
+                            <div class="issue-count">{{ issue.logs.length }}</div>
+                            <div class="issue-name"><em>{{ issue.name }}</em></div>
+                        </div>
+                    </div>
+                </div>
+            
+                <button class="carousel-arrow right" data-ng-click="scrollCarousel('right')">›</button>
+            </div>
+        </div>
+        
+        <!-- Description block -->
+        <div class="box-round" data-ng-show="focusedIssue">
+            <h2>{{ focusedIssue.name }}</h2>
+            <p>{{ focusedIssue.description }}</p>
+            <button data-ng-if="focusedIssue.fix && focusedIssueKey !== 'all_logs'"
+                    class="fix-button"
+                    data-ng-click="runFix(focusedIssueKey, focusedIssue)">
+                Run Fix
+            </button>
+            <p class="red-text" data-ng-show="!focusedIssue.fix && focusedIssueKey !== 'all_logs'">This issue must be fixed manually.</p>
+            <ul data-ng-show="!focusedIssue.fix && focusedIssueKey !== 'all_logs'">
+                <li>Click 'Edit'</li>
+                <li>Make changes to the log in the drawer.</li>
+                <li>Click 'Submit'</li>
+                <li>If the changes fixed the associated issues, then the log will be removed from the list of logs with discrepencies.</li>
+            </ul>
+        </div>
+        <div class="box-round" data-ng-show="!issuesExist">
+            <div class="feedback-info">No log discrepencies detected!</div>
+        </div>
+            
+        <div class="box-round" data-ng-show="focusedIssue && focusedIssue.logs.length">
+            <table class="grid" data-pstablefilter='{"hide":"true","cols":"1,2,4,6","focus":"true","hidebox":"false","timer":500}'>
+                <thead>
+                    <tr>
+                        <th colspan="8">{{ focusedIssue.name }}</th>
+                    </tr>
+                    <tr>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('dcid')" data-ng-class="{'selected-header': dynamicOrderBy === 'dcid'}">
+                            Log DCID&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'dcid'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('student_number')" data-ng-class="{'selected-header': dynamicOrderBy === 'student_number'}">
+                            Student Number&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'student_number'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('students_lastfirst')" data-ng-class="{'selected-header': dynamicOrderBy === 'students_lastfirst'}">
+                            Student Last, First&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'students_lastfirst'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('entry_date')" data-ng-class="{'selected-header': dynamicOrderBy === 'entry_date'}">
+                            Entry Date&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'entry_date'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('subtype')" data-ng-class="{'selected-header': dynamicOrderBy === 'subtype'}">
+                            Subtype&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'subtype'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('subject')" data-ng-class="{'selected-header': dynamicOrderBy === 'subject'}">
+                            Subject&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'subject'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th class="bold centered-table-element sortable" data-ng-click="setOrderByField('entry_author')" data-ng-class="{'selected-header': dynamicOrderBy === 'entry_author'}">
+                            Author&nbsp;&nbsp;
+                            <span class="s-ico sorting-indicator" data-ng-show="dynamicOrderBy === 'entry_author'">
+                                <span sort="asc" class="ui-grid-ico-sort ui-icon-asc ui-icon ui-icon-triangle-1-n ui-sort-ltr" data-ng-class="{'ui-state-disabled': !reverseSort}"></span>
+                                <span sort="desc" class="ui-grid-ico-sort ui-icon-desc ui-icon ui-icon-triangle-1-s ui-sort-ltr" data-ng-class="{'ui-state-disabled': reverseSort}"></span>
+                            </span>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-ng-repeat="log in focusedIssue.logs|orderBy:dynamicOrderBy:reverseSort">
+                        <td>{{ log.dcid }}</td>
+                        <td>{{ log.students_student_number }}</td>
+                        <td>{{ log.students_lastfirst }}</td>
+                        <td>{{ displayDate(log.entry_date) }}</td>
+                        <td>{{ log.subtype }}</td>
+                        <td>{{ log.subject }}</td>
+                        <td>{{ log.entry_author }}</td>
+                        <td>
+                            ~[if#checkEditSec.security.pagemod=/admin/students/customlogentry.html]
+                                <button type="button" data-ng-click="openLogDrawer(log)">Edit</button>
+                            [else#checkEditSec]
+                                <em class="red-text">No Edit Access</em>
+                            [/if#checkEditSec]
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Table of logs -->
+                   
+    </div>
+    [else#checkSchool]
+    <div class="feedback-alert">Must be in a school!</div>
+    [/if#checkSchool]
+    
+    [/if#checkSec]
+    <!-- end of content area -->
+    ~[wc:admin_footer_css]
+    
+    <style>
+        /* Start: Sorting Classes */
+        .sortable {
+            position: relative;
+        }
+        
+        .sorting-indicator {
+            position: absolute;
+            top: 50%;
+            right: 0; /* Adjust this value as needed */
+            transform: translateY(-50%);
+            filter: invert(1);
+        }
+        
+        .sorting-indicator .ui-icon-triangle-1-s {
+            background-position: -65px -16px !important;
+        }
+        
+        .routing-spinner {
+            margin-left: 50%;
+        }
+        
+        th.sortable {
+            /* Reset any default styles */
+            outline: none;
+            user-select: none;
+        }
+        
+        th.sortable:focus {
+            /* Remove focus styles */
+            outline: none;
+        }
+        
+        ul#preaction-list>li {
+            list-style-type:none;
+        }
+        
+        th.sortable::selection {
+            /* Remove selected text styles */
+            background-color: transparent;
+            color: inherit;
+        }
+        
+        th.selected-header {
+            filter: brightness(.9);
+        }
+    
+        /* END: Sorting Classes */
+        
+        .red-tile {
+            background: #e87070;
+        }
+        
+        .yellow-tile {
+            background: #f2bf45;
+        }
+        
+        .green-tile {
+            background: #6ae177;
+        }
+        
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+            margin-right: 5px;
+        }
+        
+        .carousel-arrow {
+            background: #007bff;
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            user-select: none;
+            flex: 0 0 auto;
+        }
+        
+        .carousel-arrow:hover {
+            background-color: #f99b9b;
+        }
+        
+        .carousel-wrapper {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            flex: 1 1 auto;
+            scrollbar-width: none;        /* Firefox */
+            -ms-overflow-style: none;     /* IE 10+ */
+        }
+        .carousel-wrapper::-webkit-scrollbar {
+            display: none;                /* Chrome, Safari */
+        }
+        
+        .issue-carousel {
+            display: flex;
+            transition: transform 0.3s ease;
+            gap: 1rem;
+            width: auto;
+            padding: 0.5rem 0;
+            box-sizing: border-box;
+        }
+        
+        .issue-tile {
+            flex: 0 0 150px;
+            border-radius: 12px;
+            text-align: center;
+            padding: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, background 0.2s, filter 0.2s;
+        }
+        
+        .issue-tile:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+        
+        .issue-tile.active {
+            border: 2px solid #007bff;
+            background: #a1c7ff;
+        }
+        
+        .issue-count {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .issue-name {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+            color: black;
+        }
+        
+        .issue-description {
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .fix-button {
+            margin-top: 0.5rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .fix-button:hover {
+            background: #0056b3;
+        }
+        
+        .manual-msg {
+            margin-top: 0.5rem;
+            color: #777;
+            font-style: italic;
+        }
+        
+    
+        
+    
+        .cc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 8001; 
+        }
+        
+        #cc-drawer {
+            position: fixed;
+            right: 0;
+            top: 0;
+            border-radius: 20px 0 0 20px;
+            overflow: hidden;
+            width: 700px;
+            height: 100%;
+            z-index: 8002;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        
+        .drawer-slide.ng-hide {
+            transform: translateX(100%);
+        }
+        
+        .drawer-slide.ng-hide-remove,
+        .drawer-slide.ng-hide-add {
+            transition: transform 0.3s ease;
+        }
+        
+        .cc-drawer-header {
+            top: 0;
+            padding: 0 0 16px 0;
+            flex-shrink: 0;
+        }
+        
+        h2 > .cc-header-button {
+            margin: 10px !important;
+        }
+        
+        h2 > .cc-header-span {
+            float: left;
+        }
+        .cc-drawer-content {
+            overflow-y: auto;
+            padding: 5px;
+            flex-grow: 1;
+        }
+        
+        .cc-drawer-content thead th {
+            position: sticky;
+            top: 0;
+            text-align: center;
+            z-index: 1;
+            padding: 5px;
+        }
+        
+        .cc-drawer-button-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 !important;
+        }
+        
+        .cc-drawer-button-panel h2 {
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            margin: 0 !important;
+        }
+        
+        .cc-drawer-button-panel h2 span {
+            float: left;
+        }
+        
+        .cc-drawer-footer {
+            text-align: right;
+            padding: 10px;
+        }
+        
+        .cc-drawer-button-panel h2 button {
+            margin: 10px !important;
+        }
+        
+        @media (prefers-color-scheme: light) {
+            #cc-drawer {
+                background-color: #fff;
+                box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+            }
+            
+            .cc-drawer-header {
+                border-bottom: 1px solid #ccc;
+                background-color: #f7f7f7;
+            }
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .cc-overlay {
+                background: rgba(255, 255, 255, 0.5);
+            }
+            
+            .cc-popup-window {
+                background: #323F48;
+                border: 1px solid #ccc;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+            }
+            
+            #cc-drawer {
+                background: #1f2933;
+                border-left: 1px solid darkgrey;
+            }
+            
+            .cc-drawer-header {
+                border-bottom: 1px solid #898c8f;
+                background-color: #3E4C59;
+            }
+            
+            .cc-drawer-button-panel {
+                background-color: #195f7d !important;
+            }
+            
+            .cc-drawer-button-panel h2 {
+                background: #195f7d;
+            }
+        }
+    
+    </style>
+</body>
+
+</html>

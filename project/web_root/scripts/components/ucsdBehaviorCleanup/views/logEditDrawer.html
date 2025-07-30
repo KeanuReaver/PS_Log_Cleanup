@@ -1,0 +1,482 @@
+<!-- UCSD - Behavior Cleanup -->
+<script>
+	
+	function IAbehaviorIncNumOnChange(){
+		let sBehaviorIncNum = $j("#BehaviorIncNum").val();
+		if(sBehaviorIncNum=='' && allowEditIncNum){
+			$j('#iaGenIncNum').removeClass('disabled');
+			$j('#iaGenIncNum').css('pointerEvents','inherit');
+		}	
+		else {
+			$j('#iaGenIncNum').addClass('disabled');
+			$j('#iaGenIncNum').css('pointerEvents','none');
+		}
+			
+		/* populate the Incident Number if Behavior Incident Number is populated*/	
+		if(sBehaviorIncNum=='') populateIncNumSuggestions();
+		else $j('#incNumSuggestionDiv').html("");
+	}
+	
+	function populateIncNumSuggestions(){
+		var incSuggestion='';
+		
+		/* Get the Incident Number List from the Local Storage */
+		var currIaIncNumList = JSON.parse(localStorage.getItem('iaIncNumList'));
+		if (currIaIncNumList !== null){
+			
+			 var currDate=new Date();
+			currDate.setHours(0,0,0,0);
+			
+			/* delete all but last 3 Incident Numbers */
+			for (var i=currIaIncNumList.length -1; i>= 3; i-- ){
+				currIaIncNumList.splice(i,1);
+			}
+
+			/* delete the incident numbers generated on previous day */
+			for (var i=currIaIncNumList.length -1; i>= 0; i-- ){
+				var genDate= new Date (currIaIncNumList[i].gendate);
+				if(genDate.getTime() !==  currDate.getTime() )currIaIncNumList.splice(i,1);
+			}
+			/* update the localStorage with updated incident number list */
+			localStorage.setItem('iaIncNumList', JSON.stringify(currIaIncNumList));
+			
+			/* display the incident number with Subject and Student Name*/
+			for (var i=0; i< currIaIncNumList.length; i++ ){
+				incSuggestion += '<br> <b>' + currIaIncNumList[i].incnum + '</b> (' + currIaIncNumList[i].sub + ' - ' + currIaIncNumList[i].name + ')';
+			}
+			
+			
+		}
+		
+		$j('#incNumSuggestionDiv').html(incSuggestion == '' ? '':'Previously generated numbers: ' + incSuggestion);
+	}
+</script>
+<div    class="cc-overlay"
+        data-ng-show="logDrawerOpen"></div>
+<div    id="cc-drawer"
+        class="drawer-slide"
+        data-ng-show="logDrawerOpen"
+        data-ng-animate="drawer-slide">
+    <div class="cc-drawer-header">
+        <div class="button-row cc-drawer-button-panel">
+            <h2>
+                <span>Edit Log: {{ currentLog.dcid }}</span>
+                <button type="button"
+                        class="bold"
+                        data-ng-click="closeDrawerNoSave()">
+                    ✖
+                </button>
+            </h2>
+        </div>
+        <table>
+            <tr>
+                <td>Student Number</td>
+                <td>{{ currentLog.student_number }}</td>
+            </tr>
+            <tr>
+                <td>Student Name</td>
+                <td>{{ currentLog.students_lastfirst }}</td>
+            </tr>
+            <tr>
+                <td>Entry Author</td>
+                <td>{{ currentLog.entry_author }}</td>
+            </tr>
+        </table>
+    </div>
+    <input type="hidden" data-ng-bind="currentLog.subject" name="UF-008008">
+    <form class="log-edit-form cc-drawer-content" name="editLogEntryForm">
+        <div class="log-edit-form fluid-form">
+            <div    data-ng-show="currentLog.subtype !== 'Minor' && !!currentLog.subtype">
+                <div>
+                    <label>Behavior Incident Number <em>(s_ia_log_x.behavior_incident_number)</em></label>
+                    <span>
+                        <input  type="text"
+                                name="behavior_incident_number"
+                                id="BehaviorIncNum"
+                                data-ng-model="currentLog.behavior_incident_number"
+                                data-ng-required="currentLog.subtype !== 'Minor' && !!currentLog.subtype">
+                        <a      class="button dialogM dockedDialog"
+                                title="Generate E0005 - Behavior Incident Number"
+                                id="iaGenIncNum"
+                                data-ng-href="/admin/students/state/usa_ia/IAgenIncNum.html?studentid={{currentLog.studentid}}">
+                            Generate
+                        </a>
+                    </span>
+                    <div class="feedback-confirm hidden" id="iaIncGenConfirm">Incident Number Generated successfully.</div>
+    				<div class="feedback-confirm hidden" id="iaIncCopyConfirm">Incident Number Generated successfully, and copied to clipboard.<br> Please use this Behavior Incident Number for all other students involved in this incident</div>
+    				<div class="feedback-alert hidden" id="iaIncPrevAlert">You must use the Behavior Incident Number that was generated for the <u>first</u> student involved in this incident.</div>
+    				
+    				<div id="incNumSuggestionDiv"></div>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label>Entry Date <em>(log.entry_date)</em>:</label>
+                    <input  type="text"
+                            name="entry_date"
+                            data-ng-model="currentLog.entry_date"
+                            data-date-entry-oracle
+                            data-date-entry-output="psq"
+                            placeholder="MM/DD/YYYY"
+                            size="10"
+                            maxlength="10">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label>Entry Time <em>(log.entry_time)</em>:</label>
+                    <input  type="text"
+                            name="entry_time"
+                            data-ng-model="currentLog.entry_time"
+                            data-time-entry-seconds
+                            data-time-entry-input="seconds"
+                            data-time-entry-output="string">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label>Subject <em>(log.subject)</em>:</label>
+                    <input type="text" name="subject" data-ng-model="currentLog.subject" readonly>
+                </div>
+            </div>
+            <h4>Urbandale Subtype and Infraction</h4>
+            <div>
+                <div>
+                    <label>Subtype <em>(log.subtype)</em>:</label>
+                    <select name="subtype" data-ng-model="currentLog.subtype">
+                        <option value=""></option>
+                        <option value="Minor">Minor</option>
+                        <option value="Major">Major</option>
+                        <option value="Serious">Serious</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Infraction <em>(log.discipline_incidenttype)</em>:</label>
+                    <select name="discipline_incidenttype"
+                            data-ng-model="currentLog.discipline_incidenttype"
+                            data-ng-options="def.incident_code as def.incident_name for def in filteredDefinitions">
+                        <option value="">-- choose incident type --</option>
+                    </select>
+                </div>
+            </div>
+            <h4 data-ng-show="currentLog.subtype !== 'Minor'">
+                State Subtype and Infraction 
+                <button type="button" data-ng-click="copySubAndInf()">Copy From Above</button>
+            </h4>
+            <div  data-ng-show="currentLog.subtype !== 'Minor'">
+                <div>
+                    <label>Major or Minor <em>(s_ia_log_x.major_or_minor)</em>:</label>
+                    <select name="major_or_minor" data-ng-model="currentLog.major_or_minor">
+                        <option value=""></option>
+                        <option value="1">Major</option>
+                        <option value="2">Minor</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Problem Behavior <em>(s_ia_log_x.problem_behavior)</em>:</label>
+                    <select name="problem_behavior" data-ng-model="currentLog.problem_behavior">
+    					<option value=""></option>
+    					<option value="1">1 - Abusive or Inappropriate language, profanity</option>
+    					<option value="2">2 - Alcohol related</option>
+    					<option value="3">3 - Arson</option>
+    					<option value="4">4 - Communication of a threat</option>
+    					<option value="5">5 - Bullying</option>
+    					<option value="6">6 - Combustible related</option>
+    					<option value="7">7 - Defiance, insubordination or non-compliance</option>
+    					<option value="8">8 - Disrespect</option>
+    					<option value="9">9 - Disruption</option>
+    					<option value="10">10 - Dress code violation</option>
+    					<option value="11">11 - Drug related</option>
+    					<option value="12">12 - Forgery, plagiarism</option>
+    					<option value="13">13 - Gang affiliation display</option>
+    					<option value="14">14 - Harassment</option>
+    					<option value="15">15 - Inappropriate display of affection</option>
+    					<option value="16">16 - Inappropriate location</option>
+    					<option value="17">17 - Lying/cheating</option>
+    					<option value="18">18 - Physical aggression with injury</option>
+    					<option value="19">19 - Physical aggression with serious bodily injury (includes assault)</option>
+    					<option value="20">20 - Physical aggression without injury</option>
+    					<option value="21">21 - Physical fighting with injury</option>
+    					<option value="22">22 - Physical fighting with serious bodily injury</option>
+    					<option value="23">23 - Physical fighting without injury</option>
+    					<option value="24">24 - Property damage/vandalism/misuse</option>
+    					<option value="25">25 - Skip class</option>
+    					<option value="26">26 - Special education administrative law judge decision</option>
+    					<option value="27">27 - Tardy</option>
+    					<option value="28">28 - Technology violation</option>
+    					<option value="29">29 - Theft</option>
+    					<option value="30">30 - Tobacco related</option>
+    					<option value="31">31 - Truancy</option>
+    					<option value="32">32 - Weapon related</option>
+    					<option value="33">33 - Other</option>
+                    </select>
+                </div>
+            </div>
+            <h4></h4>
+            <div>
+                <div>
+                    <label for="edit-log-staff-victim">
+                        <input  type="checkbox"
+                                id="edit-log-staff-victim"
+                                name="staff_victim"
+                                data-ng-model="currentLog.staff_victim"
+                                data-ng-true-value="1"
+                                data-ng-false-value="0">
+                        Staff Victim
+                    </label>
+                    <label for="edit-log-suspension-letter">
+                        <input  type="checkbox"
+                                id="edit-log-suspension-letter"
+                                name="suspensionletter"
+                                data-ng-model="currentLog.suspensionletter"
+                                data-ng-true-value="1"
+                                data-ng-false-value="0">
+                        Suspension Letter
+                    </label>
+                </div>
+            </div>
+            <h4></h4>
+            <div>
+                <div>
+                    <label>Infraction Date <em>(log.discipline_incidentdate)</em>:</label>
+                    <input  type="text"
+                            name="discipline_incidentdate"
+                            data-ng-model="currentLog.discipline_incidentdate"
+                            data-date-entry-oracle
+                            placeholder="MM/DD/YYYY"
+                            size="10"
+                            maxLength="10">
+                </div>
+            </div>
+            <!--<div  data-ng-show="currentLog.subtype !== 'Minor'">-->
+            <div>
+                <div>
+                    <label>Infraction Time <em>(s_ia_log_x.incident_time)</em>:</label>
+                    <input  type="text"
+                            name="incident_time"
+                            data-ng-model="currentLog.incident_time"
+                            data-time-entry-seconds
+                            data-time-entry-string
+                            size="10"
+                            maxlength="8">
+                            
+                </div>
+            </div>
+            <h4></h4>
+            <div>
+                <label>Entry <em>(log.entry)</em>:</label>
+                <textarea name="entry" data-ng-bind="currentLog.entry"
+                        rows="4" 
+                        style="width: 90%; margin:5px"
+                        readonly>
+                </textarea>
+            </div>
+            <h4>Motivation</h4>
+            <div>
+                <div>
+                    <label>Motivation <em>(u_def_ext_log.motivation)</em></label>
+                    <select name="log_motivation" data-ng-model="currentLog.log_motivation">
+                        <option value="">Required Entry</option>
+                        <option value="AVA">Avoid Adult</option>
+                        <option value="AVP">Avoid Peers</option>
+                        <option value="AVT">Avoid Task/Activities</option>
+                        <option value="OAA">Obtain Adult Attention</option>
+                        <option value="OIA">Obtain Items/Activities</option>
+                        <option value="OPA">Obtain Peer Attention</option>
+                        <option value="UMO">Unknown Motivation</option>
+                        <option value="OMO">Other Motivation</option>
+                    </select>
+                </div>
+                <div data-ng-show="currentLog.subtype !== 'Minor'">
+                    <label>State Motivation <em>(s_ia_log_x.motivation)</em>:</label>
+                    <select name="motivation"
+                            data-ng-model="currentLog.motivation"
+                            data-ng-options="item.value as item.label for item in motivationList">
+                        <option value="">(none selected)</option>
+                    </select>
+                    <button type="button" data-ng-click="copyMotivation()">Copy</button>
+                </div>
+            </div>
+            <h4>Location</h4>
+            <div>
+                <div>
+                    <label>Location <em>(u_def_ext_log.incident_location)</em>:</label>
+                    <select name="location" data-ng-model="currentLog.location">
+                        <option value="">Entry Required</option>
+                        <option value="CLA">Classroom</option>
+                        <option value="LUC">Lunchroom/Cafeteria</option>
+                        <option value="HAL">Hallway</option>
+                        <option value="AUD">Auditorium</option>
+                        <option value="RES">Restroom</option>
+                        <option value="GYM">Gymnasium</option>
+                        <option value="EAC">Elementary: Art Classroom</option>
+                        <option value="EMC">Elementary: Music Classroom</option>
+                        <option value="MEC">Media Center</option>
+                        <option value="PLA">Playground</option>
+                        <option value="ECE">Extra-curricular Event</option>
+                        <option value="BUS">Bus</option>
+                        <option value="BUZ">Bus Zone</option>
+                        <option value="OFC">Off Campus</option>
+                        <option value="GSP">General School Property</option>
+                        <option value="OFF">Office</option>
+                        <option value="PAL">Parking Lot</option>
+                        <option value="LOR">Locker Room</option>
+                        <option value="OTH">Other</option>
+                    </select>
+                </div>
+                <div  data-ng-show="currentLog.subtype !== 'Minor'">
+                    <label>State Location <em>(s_ia_log_x.incident_location)</em>:</label>
+                    <select name="incident_location" data-ng-model="currentLog.incident_location">
+                        <option value="99">99 - Not applicable</option>
+                        <option value="1">1 - Bathroom/Restroom</option>
+                        <option value="2">2 - Bus</option>
+                        <option value="3">3 - Bus Loading Zone</option>
+                        <option value="4">4 - Cafeteria</option>
+                        <option value="5">5 - Classroom</option>
+                        <option value="6">6 - Commons/Common area</option>
+                        <option value="7">7 - Computer Lab</option>
+                        <option value="8">8 - Gym</option>
+                        <option value="9">9 - Hallway/Breezeway</option>
+                        <option value="10">10 - Library</option>
+                        <option value="11">11 - Locker Room</option>
+                        <option value="12">12 - Off-Campus</option>
+                        <option value="13">13 - Office</option>
+                        <option value="14">14 - Parking Lot</option>
+                        <option value="15">15 - Playground</option>
+                        <option value="16">16 - Special Event/Assembly/Field Trip</option>
+                        <option value="17">17 - Stadium</option>
+                        <option value="18">18 - Vocational Room</option>
+                        <option value="19">19 - Unknown Location</option>
+                        <option value="20">20 - Other Locations</option>
+                    </select>
+                    <button type="button" data-ng-click="copyLocation()">Copy</button>
+                </div>
+            </div>
+            
+            <h4>Action Taken</h4>
+            <div>
+                <label>Staff Actions</label>
+                <ul>
+                    <li ng-repeat="action in combinedActions">{{ action }}</li>
+                    <li ng-if="!combinedActions.length"><em>No actions recorded.</em></li>
+                </ul>
+            </div>
+            <div>
+                <div>
+                    <label>Action Taken <em>(log.consequence)</em>:</label>
+                    <select name="consequence"
+                            data-ng-model="currentLog.consequence"
+                            data-ng-change="markDirty('consequence')">
+                        <option value="">Entry Required</option>
+                        <option value="1">In-School Suspension</option>
+                        <option value="2">Out-of-School Suspension</option>
+                        <option value="3">Expulsion</option>
+                        <option value="4">Expulsion following a suspesion for the same incident</option>
+                        <option value="5">Interim Setting by School Personnel</option>
+                        <option value="6">Interim Setting by Impartial Hearing Officer</option>
+                        <option value="7">Apology/Restitution</option>
+                        <option value="8">Bus Suspension</option>
+                        <option value="9">Community Service</option>
+                        <option value="10">Conference with Student</option>
+                        <option value="11">Individualized Instruction</option>
+                        <option value="12">Loss of Privilege</option>
+                        <option value="13">Parent Contact</option>
+                        <option value="14">Saturday School</option>
+                        <option value="15">Time in Office</option>
+                        <option value="16">Time Out/Detention</option>
+                        <option value="17">Action Pending</option>
+                        <option value="18">Other</option>
+                        <option value="19">Individualized Behavior Support Plan</option>
+                    </select>
+                </div>
+            </div>
+            <div  data-ng-show="currentLog.subtype !== 'Minor'">
+                <div>
+                    <label>State Action Taken <em>(s_ia_log_x.action_taken)</em>:</label>
+                    <select name="action_taken" data-ng-model="currentLog.action_taken">
+                        <option value="">Entry Required</option>
+                        <option value="1">In-School Suspension</option>
+                        <option value="2">Out-of-School Suspension</option>
+                        <option value="3">Expulsion</option>
+                        <option value="4">Expulsion following a suspesion for the same incident</option>
+                        <option value="5">Interim Setting by School Personnel</option>
+                        <option value="6">Interim Setting by Impartial Hearing Officer</option>
+                        <option value="7">Apology/Restitution</option>
+                        <option value="8">Bus Suspension</option>
+                        <option value="9">Community Service</option>
+                        <option value="10">Conference with Student</option>
+                        <option value="11">Individualized Instruction</option>
+                        <option value="12">Loss of Privilege</option>
+                        <option value="13">Parent Contact</option>
+                        <option value="14">Saturday School</option>
+                        <option value="15">Time in Office</option>
+                        <option value="16">Time Out/Detention</option>
+                        <option value="17">Action Pending</option>
+                        <option value="18">Other</option>
+                        <option value="19">Individualized Behavior Support Plan</option>
+                    </select>
+                    <button type="button" data-ng-click="copyActionTaken()">Copy</button>
+                </div>
+            </div>
+            <h4></h4>
+            <div>
+                <label>Comments (Admin Only) <em>(u_def_ext_log.comments)</em>:</label>
+                <textarea name="comments" data-ng-model="currentLog.comments"
+                        rows="4"
+                        data-pss-validation-field="log.u_def_ext_log.comments"
+                        style="width: 90%; margin:5px">
+                </textarea>
+            </div>
+            <h4  data-ng-show="currentLog.subtype !== 'Minor'"></h4>
+            <div  data-ng-show="currentLog.subtype !== 'Minor'">
+                <div>
+                    <label>Restrained or Seclusion <em>(s_ia_log_x.restrained_or_seclusion)</em>:</label>
+                    <select name="restrained_or_seclusion" data-ng-model="currentLog.restrained_or_seclusion">
+                        <option value="0">0 - None</option>
+                        <option value="1">1 - Restraint</option>
+                        <option value="2">2 - Restraint and Seclusion</option>
+                        <option value="3">3 - Seclusion</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div  data-ng-show="
+                        currentLog.subtype !== 'Minor' 
+                        && (
+                            currentLog.consequence === '3' 
+                            || currentLog.consequence === '2' 
+                            || currentLog.consequence === '1'
+                            || currentLog.consequence === '4'
+                    )">
+                
+                <div>
+                    <label>Date of Removal <em>(s_ia_log_x.date_of_removal)</em>:</label>
+                    <input  type="text"
+                            name="date_of_removal"
+                            data-ng-model="currentLog.date_of_removal"
+                            data-date-entry-oracle
+                            placeholder="MM/DD/YYYY"
+                            size="10"
+                            maxlength="10">
+                    <span class="feedback-alert">Required if ISS, OSS or Expulsion</span>
+                </div>
+                <div>
+                    <label>Duration Assigned <em>(s_ia_log_x.duration_assigned)</em>:</label>
+                    <input  type="text"
+                            name="duration_assigned"
+                            data-ng-model="currentLog.duration_assigned"
+                            data-pss-validation-field="log.s_ia_log_x.duration_assigned"
+                            size="5"> <em>format: 000.0</em>
+                    <span class="feedback-alert">Required if ISS, OSS or Expulsion</span>
+                </div>
+            </div>
+            
+            <button type="button" data-ng-click="checkvalues()">Check</button>
+            
+        </div>
+        <div class="button-row">
+            <button type="button" data-ng-click="closeDrawerNoSave()">Cancel</button>
+            <button type="button" data-ng-click="submitLogChanges()">Submit</button>
+        </div>        
+    </form>      
+</div>

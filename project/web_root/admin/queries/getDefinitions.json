@@ -1,0 +1,23 @@
+[~[tlist_sql;
+    SELECT
+        u_ucsd_beh_definitions.id                       AS id,
+        u_ucsd_beh_definitions.incident_schoolid        AS incident_schoolid,
+        u_ucsd_beh_definitions.incident_level           AS incident_level,
+        u_ucsd_beh_definitions.incident_name            AS incident_name,
+        u_ucsd_beh_definitions.incident_definition      AS incident_definition,
+        u_ucsd_beh_definitions.incident_req_preaction   AS incident_req_preaction,
+        u_ucsd_beh_definitions.incident_actions         AS incident_actions,
+        u_ucsd_beh_definitions.incident_code            AS incident_code
+    FROM
+        u_ucsd_beh_definitions u_ucsd_beh_definitions
+    
+;]{
+    "id": "~(id)",
+    "incident_schoolid": "~(incident_schoolid)",
+    "incident_level": "~(incident_level;JSON)",
+    "incident_name": "~(incident_name;json)",
+    "incident_definition": "~(incident_definition;json)",
+    "incident_req_preaction": "~(incident_req_preaction;json)",
+    "incident_actions": "~(incident_actions;json)",
+    "incident_code": "~(incident_code)"
+},[/tlist_sql]{}]

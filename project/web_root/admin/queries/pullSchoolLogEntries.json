@@ -1,0 +1,79 @@
+~[tlist_sql;
+    SELECT
+        COALESCE(JSON_ARRAYAGG(
+            JSON_OBJECT(
+                'dcid'                          VALUE to_char(log.dcid),
+                'studentid'                     VALUE to_char(log.studentid),
+                'teacherid'                     VALUE to_char(log.teacherid),
+                'entry_author'                  VALUE to_char(log.entry_author),
+                'entry_date'                    VALUE log.entry_date,
+                'entry_time'                    VALUE to_char(log.entry_time),
+                'subtype'                       VALUE to_char(log.subtype),
+                'subject'                       VALUE log.subject,
+                'consequence'                   VALUE to_char(log.consequence),
+                'student_number'                VALUE to_char(log.student_number),
+                'discipline_incidenttype'       VALUE to_char(log.discipline_incidenttype),
+                'discipline_incidentdate'       VALUE log.discipline_incidentdate,
+                'discipline_weaponrelatedflag'  VALUE to_char(log.discipline_weaponrelatedflag),
+                'discipline_weapontype'         VALUE to_char(log.discipline_weapontype),
+                'discipline_moneylossvalue'     VALUE to_char(log.discipline_moneylossvalue),
+                'incident_name'                 VALUE to_char(u_ucsd_beh_definitions.incident_name),
+                'noDefRecord'                   VALUE CASE WHEN u_def_ext_log.logdcid IS NULL THEN '1' END,
+                'location'                      VALUE to_char(u_def_ext_log.incident_location),
+                'log_motivation'                VALUE to_char(u_def_ext_log.motivation),
+                'teacher_action_extras'         VALUE u_def_ext_log.teacher_action_extras,
+                'teacher_actions2'              VALUE u_def_ext_log.teacher_actions2,
+                'noUCSDRecord'                  VALUE CASE WHEN u_ucsd_log_extensions.logdcid IS NULL THEN '1' END,
+                'staff_victim'                  VALUE to_char(u_ucsd_log_extensions.staff_victim),
+                'suspensionletter'              VALUE to_char(u_ucsd_log_extensions.suspensionletter),
+                'noStateRecord'                 VALUE CASE WHEN s_ia_log_x.logdcid IS NULL THEN '1' END,
+                'restrained_or_seclusion'       VALUE to_char(s_ia_log_x.restrained_or_seclusion),
+                'incident_location'             VALUE to_char(s_ia_log_x.incident_location),
+                'action_taken'                  VALUE to_char(s_ia_log_x.action_taken),
+                'major_or_minor'                VALUE to_char(s_ia_log_x.major_or_minor),
+                'motivation'                    VALUE to_char(s_ia_log_x.motivation),
+                'duration_assigned'             VALUE to_char(s_ia_log_x.duration_assigned),
+                'date_of_removal'               VALUE to_char(s_ia_log_x.date_of_removal),
+                'problem_behavior'              VALUE to_char(s_ia_log_x.problem_behavior),
+                'incident_time'                 VALUE to_char(s_ia_log_x.incident_time),
+                'students_student_number'       VALUE to_char(students.student_number),
+                'students_lastfirst'            VALUE to_char(students.lastfirst),
+                'comments'                      VALUE to_char(u_def_ext_log.comments),
+                'behavior_incident_number'      VALUE NVL(s_ia_log_x.behavior_incident_number, ''),
+                'entry_array'                   VALUE JSON_ARRAY(
+                                                    NVL(DBMS_LOB.SUBSTR(log.entry, 1000, 1),''),
+                                                    CASE WHEN DBMS_LOB.GETLENGTH(log.entry) > 1000 
+                                                        THEN DBMS_LOB.SUBSTR(log.entry, 1000, 1001) 
+                                                        ELSE NULL 
+                                                    END,
+                                                    CASE WHEN DBMS_LOB.GETLENGTH(log.entry) > 2000 
+                                                        THEN DBMS_LOB.SUBSTR(log.entry, 1000, 2001) 
+                                                        ELSE NULL 
+                                                    END,
+                                                    CASE WHEN DBMS_LOB.GETLENGTH(log.entry) > 3000 
+                                                        THEN DBMS_LOB.SUBSTR(log.entry, 1000, 3001) 
+                                                        ELSE NULL 
+                                                    END
+                                                    RETURNING CLOB
+                                                )
+                RETURNING CLOB
+            )
+        RETURNING CLOB
+        ), TO_CLOB(CHR(91)||CHR(93)) )
+    FROM
+        log
+		LEFT JOIN students ON log.StudentID = students.id
+		LEFT JOIN u_def_ext_log ON u_def_ext_log.logdcid = log.dcid
+		LEFT JOIN s_ia_log_x ON s_ia_log_x.logdcid = log.dcid
+		LEFT JOIN u_ucsd_log_extensions ON u_ucsd_log_extensions.logdcid = log.dcid
+		LEFT JOIN u_ucsd_beh_definitions ON u_ucsd_beh_definitions.incident_code = log.discipline_incidenttype
+		INNER JOIN terms ON terms.isyearrec = 1 
+		    AND log.schoolid = terms.schoolid
+		    AND terms.yearid = ~(curyearid)
+			AND log.discipline_incidentdate BETWEEN terms.firstday AND terms.lastday
+	WHERE
+		log.schoolid = ~(curschoolid)
+		AND log.logtypeid = -100000
+;]
+    ~(val)
+[/tlist_sql]
