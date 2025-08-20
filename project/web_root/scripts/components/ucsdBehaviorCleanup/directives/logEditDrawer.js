@@ -20,10 +20,8 @@ define(require => {
                 $scope.combinedActions = [];
                 $scope.behIncNumRan = false;
 
-                // 2) compute it whenever currentLog changes
                 function updateCombinedActions() {
                     const csv = $scope.currentLog.teacher_actions2 || '';
-                    // split on comma, trim, drop empties
                     const staticArr = csv
                         .split(',')
                         .map(s => s.trim())
@@ -37,7 +35,6 @@ define(require => {
                         extras = [];
                     }
             
-                    // merge & dedupe
                     const all = staticArr.concat(extras);
                     const unique = [];
                     all.forEach(item => {
@@ -56,21 +53,20 @@ define(require => {
         			$j('#iaGenIncNum').removeAttr('style');
                 }
             
-                // 3) watch the two fields
                 $scope.$watchGroup([
                     'currentLog.teacher_actions2',
                     'currentLog.teacher_action_extras'
                 ], updateCombinedActions);
                 
                 $scope.motivationList = [
-                    { value: 1, label: '1 - Avoid Adult' },
-                    { value: 2, label: '2 - Avoid Peers' },
-                    { value: 3, label: '3 - Avoid Tasks/Activities' },
-                    { value: 4, label: '4 - Obtain Adult Attention' },
-                    { value: 5, label: '5 - Obtain Items/Activities' },
-                    { value: 6, label: '6 - Obtain Peer Attention' },
-                    { value: 7, label: '7 - Unknown Motivation' },
-                    { value: 8, label: '8 - Other Motivation' }
+                    { value: '1', label: '1 - Avoid Adult' },
+                    { value: '2', label: '2 - Avoid Peers' },
+                    { value: '3', label: '3 - Avoid Tasks/Activities' },
+                    { value: '4', label: '4 - Obtain Adult Attention' },
+                    { value: '5', label: '5 - Obtain Items/Activities' },
+                    { value: '6', label: '6 - Obtain Peer Attention' },
+                    { value: '7', label: '7 - Unknown Motivation' },
+                    { value: '8', label: '8 - Other Motivation' }
                 ];
                 
                 (function() {
@@ -164,7 +160,7 @@ define(require => {
                 
                 $scope.copyMotivation = function() {
                     $scope.currentLog.motivation = 
-                        (baseUtil.moArray.indexOf($scope.currentLog.log_motivation) + 1) || '0';
+                        ((baseUtil.moArray.indexOf($scope.currentLog.log_motivation) + 1)).toString() || '0';
                 
                     if ($scope.editLogEntryForm && $scope.editLogEntryForm.motivation) {
                         $scope.editLogEntryForm.motivation.$setDirty();
@@ -371,21 +367,18 @@ define(require => {
                 
                 $scope.$watch('logDrawerOpen', function(isOpen, wasOpen) {
                     if (!isOpen && wasOpen && $scope.editLogEntryForm) {
-                        // When drawer just closed
                         $scope.editLogEntryForm.$setPristine();
                         $scope.editLogEntryForm.$setUntouched();
                     }
                 
                     if (isOpen && !wasOpen) {
-                        // When drawer just opened
                         $scope.editLogEntryForm.$setPristine();
                         $scope.editLogEntryForm.$setUntouched();
                 
-                        // Scroll to top of drawer content
                         setTimeout(() => {
                             const drawerContent = document.querySelector('.cc-drawer-content');
                             if (drawerContent) drawerContent.scrollTop = 0;
-                        }, 0); // Delay until next digest/render cycle
+                        }, 0);
                     }
                 });
                 
@@ -399,8 +392,7 @@ define(require => {
                         const currentVal = input.value;
                         if (currentVal !== lastVal) {
                             lastVal = currentVal;
-                
-                            // Only apply to model if it's truly changed
+
                             $scope.$applyAsync(() => {
                                 $scope.currentLog.behavior_incident_number = currentVal;
                                 if ($scope.editLogEntryForm?.behavior_incident_number) {
@@ -408,7 +400,7 @@ define(require => {
                                 }
                             });
                         }
-                    }, 200); // Adjust interval as needed
+                    }, 200);
                 })();
             }]
         };

@@ -152,7 +152,7 @@ define(require => {
                     ) addToBucket(issueBuckets, 'parent_contacted', log);
                     
                     // Only checks if log is NOT Minor rather than only if log is Major or Serious since subtype can be null
-                    if (log.subtype !== 'Minor' && !!log.subtype) {
+                    if (!!log.subtype && log.subtype !== 'Minor') {
                         if (log.consequence && log.consequence != log.action_taken) addToBucket(issueBuckets, 'state_action_copy', log);
                         
                         if (!log.behavior_incident_number) addToBucket(issueBuckets, 'missing_beh_inc_num', log);
@@ -168,9 +168,9 @@ define(require => {
                         ) addToBucket(issueBuckets, 'state_loc_copy', log);
 
                         if (
-                            log.log_motivation 
+                            !!log.log_motivation 
                             && moArray.indexOf(log.log_motivation) !== -1 
-                            && moArray.indexOf(log.log_motivation) + 1 != parseInt(log.motivation)
+                            && (moArray.indexOf(log.log_motivation) + 1) !== parseInt(log.motivation)
                         ) addToBucket(issueBuckets, 'state_mo_copy', log);
 
                         if (

@@ -159,7 +159,8 @@
                     state_incident_copy:                0,
                     state_loc_copy:                     0,
                     state_mo_copy:                      0,
-                    state_dur_assign:                   0
+                    state_dur_assign:                   0,
+                    state_incident_number:              0
                 };
 
                 for (const log of yearLogs) {
@@ -199,6 +200,8 @@
                         if (log.consequence && String(log.consequence) !== String(log.action_taken)) {
                             counts.state_action_copy++;
                         }
+                        
+                        if (!log.behavior_incident_number) counts.state_incident_number++;
 
                         const expectedPB = incidentTypeAssoc[String(log.discipline_incidenttype)] || null;
                         if ((log.discipline_incidenttype && String(expectedPB) !== String(log.problem_behavior)) || (log.subtype && !log.major_or_minor)) {
@@ -211,7 +214,7 @@
                         }
 
                         const moIndex = moArray.indexOf(log.log_motivation);
-                        if (log.log_motivation && moIndex !== -1 && (moIndex + 1) !== parseInt(log.motivation)) {
+                        if (log.log_motivation && moIndex !== -1 && (moIndex + 1) !== parseInt(log.motivation, 10)) {
                             counts.state_mo_copy++;
                         }
 
@@ -245,12 +248,14 @@
                     state_incident_copy:                'State Incident Needs Copied',
                     state_loc_copy:                     'State Location Needs Copied',
                     state_mo_copy:                      'State Motivation Needs Copied',
-                    state_dur_assign:                   'State Duration Needs Assigned'
+                    state_dur_assign:                   'State Duration Needs Assigned',
+                    state_incident_number:              'State Incident Number Missing'
                 };
 
                 Object.keys(counts).forEach(key => {
                     totalIssues += counts[key];
                 });
+                console.log(totalIssues);
 
                 if (totalIssues === 0) {
                     $j('#log-cleanup-alerts').hide();

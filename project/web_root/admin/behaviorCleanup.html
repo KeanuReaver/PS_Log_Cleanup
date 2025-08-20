@@ -30,7 +30,7 @@
                 data-current-log="currentLog"
                 data-current-school="currentSchool"></div>
         <div class="feedback-alert">Click tile to see instructions and associated logs.</div>
-        <div class="box-round" data-ng-show="issuesExist">
+        <div class="box-round fit-to-area" data-ng-show="issuesExist">
             <div class="carousel-container">
                 <button class="carousel-arrow left" data-ng-click="scrollCarousel('left')">‹</button>
                 <div class="carousel-wrapper">
@@ -72,7 +72,7 @@
         </div>
             
         <div class="box-round" data-ng-show="focusedIssue && focusedIssue.logs.length">
-            <table class="grid" data-pstablefilter='{"hide":"true","cols":"1,2,4,6","focus":"true","hidebox":"false","timer":500}'>
+            <table class="grid" data-pstablefilter='{"hide":"true","cols":"1,2,3,4,6,7","focus":"true","hidebox":"false","timer":500}'>
                 <thead>
                     <tr>
                         <th colspan="8">{{ focusedIssue.name }}</th>
@@ -162,9 +162,21 @@
     ~[wc:admin_footer_css]
     
     <style>
+        .carousel-wrapper {
+            cursor: grab;
+        }
+        .carousel-wrapper.dragging {
+            cursor: grabbing;
+        }
+    
         /* Start: Sorting Classes */
         .sortable {
             position: relative;
+        }
+        
+        .fit-to-area {
+            min-width: 90% !important;
+            max-width: 100% !important;
         }
         
         .sorting-indicator {
@@ -173,6 +185,7 @@
             right: 0; /* Adjust this value as needed */
             transform: translateY(-50%);
             filter: invert(1);
+            display: grid;
         }
         
         .sorting-indicator .ui-icon-triangle-1-s {
@@ -245,6 +258,7 @@
         
         .carousel-arrow:hover {
             background-color: #f99b9b;
+            color: black;
         }
         
         .carousel-wrapper {
@@ -416,49 +430,46 @@
             margin: 10px !important;
         }
         
-        @media (prefers-color-scheme: light) {
-            #cc-drawer {
-                background-color: #fff;
-                box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
-            }
-            
-            .cc-drawer-header {
-                border-bottom: 1px solid #ccc;
-                background-color: #f7f7f7;
-            }
+        
+        #cc-drawer {
+            background-color: #fff;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
         }
         
-        @media (prefers-color-scheme: dark) {
-            .cc-overlay {
-                background: rgba(255, 255, 255, 0.5);
-            }
-            
-            .cc-popup-window {
-                background: #323F48;
-                border: 1px solid #ccc;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
-            }
-            
-            #cc-drawer {
-                background: #1f2933;
-                border-left: 1px solid darkgrey;
-            }
-            
-            .cc-drawer-header {
-                border-bottom: 1px solid #898c8f;
-                background-color: #3E4C59;
-            }
-            
-            .cc-drawer-button-panel {
-                background-color: #195f7d !important;
-            }
-            
-            .cc-drawer-button-panel h2 {
-                background: #195f7d;
-            }
+        .cc-drawer-header {
+            border-bottom: 1px solid #ccc;
+            background-color: #f7f7f7;
         }
+        
+        body.set-to-dark:not(.disable-dark-mode) .cc-overlay {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        body.set-to-dark:not(.disable-dark-mode) .cc-popup-window {
+            background: #323F48;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+        }
+        
+        body.set-to-dark:not(.disable-dark-mode) #cc-drawer {
+            background: #1f2933;
+            border-left: 1px solid darkgrey;
+        }
+        
+        body.set-to-dark:not(.disable-dark-mode) .cc-drawer-header {
+            border-bottom: 1px solid #898c8f;
+            background-color: #3E4C59;
+        }
+        
+        body.set-to-dark:not(.disable-dark-mode) .cc-drawer-button-panel {
+            background-color: #195f7d !important;
+        }
+        
+        body.set-to-dark:not(.disable-dark-mode) .cc-drawer-button-panel h2 {
+            background: #195f7d;
+        }
+        
     
     </style>
 </body>
-
 </html>

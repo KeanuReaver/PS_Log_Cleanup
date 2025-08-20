@@ -62,6 +62,50 @@ define(require => {
                     closeLoading();
                 });
         }
+        
+        $scope.initCarouselDragging = function() {
+            const wrapper = document.querySelector('.carousel-wrapper');
+            if (!wrapper) return;
+        
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+        
+            // mousedown
+            wrapper.addEventListener('mousedown', (e) => {
+                isDown = true;
+                wrapper.classList.add('dragging');
+                startX = e.pageX - wrapper.offsetLeft;
+                scrollLeft = wrapper.scrollLeft;
+            });
+        
+            // mouseleave & mouseup
+            ['mouseleave', 'mouseup'].forEach(event => {
+                wrapper.addEventListener(event, () => {
+                    isDown = false;
+                    wrapper.classList.remove('dragging');
+                });
+            });
+        
+            // mousemove
+            wrapper.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - wrapper.offsetLeft;
+                const walk = (x - startX) * 1.5; // adjust scroll speed
+                wrapper.scrollLeft = scrollLeft - walk;
+            });
+            
+            wrapper.addEventListener('wheel', function (event) {
+                if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+                    event.preventDefault();
+                    wrapper.scrollBy({
+                        left: event.deltaY,
+                        behavior: 'smooth'
+                    });
+                }
+            }, { passive: false });
+        };
 
         $scope.runFix = function(key, issueObj) {
             loadingDialog('Running Fix');
@@ -113,7 +157,12 @@ define(require => {
 
         $j(() => {
             loadingDialog('Getting Logs');
-            getYearLogs();
+            getYearLogs()
+                .then(() => {
+                    setTimeout(() => {
+                        $scope.initCarouselDragging();
+                    }, 100);
+                });
         });
     }]);
 });

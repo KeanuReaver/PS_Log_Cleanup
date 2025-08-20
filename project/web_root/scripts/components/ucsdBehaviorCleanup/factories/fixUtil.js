@@ -231,7 +231,7 @@ define(require => {
 
         return {
             runFix,
-            fixFunctions // optionally export if needed individually
+            fixFunctions
         };
     }]);
 });
