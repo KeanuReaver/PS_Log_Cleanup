@@ -126,6 +126,58 @@ define(require => {
                 const issueBuckets = getFreshBuckets();
 
                 for (const log of yearLogs) {
+                    log.bkt = {};
+                    if (log.suspensionletter == '1') log.bkt.suspensionletter = true;
+
+                    if (!log.student_number || log.student_number == '0') log.bkt.student_number = true;
+
+                    if (!log.subtype) log.bkt.subtype = true;
+
+                    if (!log.discipline_incidenttype) log.bkt.discipline_incidenttype = true;
+
+                    if (!log.consequence) log.btk.consequence = true;
+
+                    if (!log.location) log.bkt.location = true;
+                    
+                    if (!log.incident_time) log.bkt.incident_time = true;
+                    
+                    if (!log.consequence && log.action_taken) log.bkt.consequence = true;
+                    
+                    if (
+                        !log.consequence 
+                        && log.teacher_actions2 === 'Parent Contacted' 
+                        && ( log.teacher_action_extras === '{}' || log.teacher_action_extras === '' )
+                    ) log.bkt.parent_contacted = true;
+                    
+                    // Only checks if log is NOT Minor rather than only if log is Major or Serious since subtype can be null
+                    if (!!log.subtype && log.subtype !== 'Minor') {
+                        if (log.consequence && log.consequence != log.action_taken) log.bkt.state_action_taken = true;
+                        
+                        if (!log.behavior_incident_number) log.bkt.behavior_incident_number = true;
+
+                        if (
+                            ( log.discipline_incidenttype && incidentTypeAssoc[log.discipline_incidenttype] != log.problem_behavior )
+                            || (log.subtype && !log.major_or_minor )
+                        ) log.bkt.state_incident = true;
+
+                        if (
+                            log.location 
+                            && locationMap[log.location.trim()] != log.incident_location
+                        ) log.bkt.state_location = true;
+
+                        if (
+                            !!log.log_motivation 
+                            && moArray.indexOf(log.log_motivation) !== -1 
+                            && (moArray.indexOf(log.log_motivation) + 1) !== parseInt(log.motivation)
+                        ) log.bkt.state_motivation = true;
+
+                        if (
+                            log.action_taken 
+                            && Number(log.action_taken) <= 4
+                            && ( !log.duration_assigned || log.duration_assigned == '0' )
+                        ) log.bkt.state_duration = true;
+                    }
+                    
                     addToBucket(issueBuckets, 'all_logs', log); // Adds to all_logs bucket no matter what
                     
                     // log is checked against all of the following discrepencies:

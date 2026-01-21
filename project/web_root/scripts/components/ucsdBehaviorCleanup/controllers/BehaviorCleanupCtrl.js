@@ -59,6 +59,7 @@ define(require => {
                     console.error('Failed to get logs for this year at this school:', error);
                 })
                 .then(() => {
+                    console.log($scope.issueBuckets);
                     closeLoading();
                 });
         }

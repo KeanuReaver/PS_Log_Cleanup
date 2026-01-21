@@ -235,6 +235,15 @@
             background: #6ae177;
         }
         
+        .red-border {
+            border: 1pt solid red;
+            padding: 0 5px 0 5px;
+        }
+        
+        small.red-text {
+            display: block;
+        }
+        
         .carousel-container {
             display: flex;
             align-items: center;
@@ -259,6 +268,10 @@
         .carousel-arrow:hover {
             background-color: #f99b9b;
             color: black;
+        }
+        
+        .carousel-arrow.right {
+            margin: 5px;
         }
         
         .carousel-wrapper {
@@ -289,6 +302,9 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.2s, background 0.2s, filter 0.2s;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none;
         }
         
         .issue-tile:hover {
@@ -378,7 +394,7 @@
         
         .cc-drawer-header {
             top: 0;
-            padding: 0 0 16px 0;
+            /*padding: 0 0 16px 0;*/
             flex-shrink: 0;
         }
         
@@ -456,6 +472,10 @@
             border-left: 1px solid darkgrey;
         }
         
+        body.set-to-dark:not(.disable-dark-mode) .red-border {
+            border: 1pt solid #f79797;
+        }
+        
         body.set-to-dark:not(.disable-dark-mode) .cc-drawer-header {
             border-bottom: 1px solid #898c8f;
             background-color: #3E4C59;
@@ -472,4 +492,5 @@
     
     </style>
 </body>
+
 </html>

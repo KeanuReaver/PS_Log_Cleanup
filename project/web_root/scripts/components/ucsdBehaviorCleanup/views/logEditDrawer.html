@@ -1,16 +1,18 @@
 <!-- UCSD - Behavior Cleanup -->
 <script>
-    // State Incident Number Generator logic
+	
 	function IAbehaviorIncNumOnChange(){
 		let sBehaviorIncNum = $j("#BehaviorIncNum").val();
-		if (sBehaviorIncNum=='' && allowEditIncNum){
+		if(sBehaviorIncNum=='' && allowEditIncNum){
 			$j('#iaGenIncNum').removeClass('disabled');
 			$j('#iaGenIncNum').css('pointerEvents','inherit');
-		} else {
+		}	
+		else {
 			$j('#iaGenIncNum').addClass('disabled');
 			$j('#iaGenIncNum').css('pointerEvents','none');
 		}
-				
+			
+		/* populate the Incident Number if Behavior Incident Number is populated*/	
 		if(sBehaviorIncNum=='') populateIncNumSuggestions();
 		else $j('#incNumSuggestionDiv').html("");
 	}
@@ -18,26 +20,32 @@
 	function populateIncNumSuggestions(){
 		var incSuggestion='';
 		
+		/* Get the Incident Number List from the Local Storage */
 		var currIaIncNumList = JSON.parse(localStorage.getItem('iaIncNumList'));
 		if (currIaIncNumList !== null){
 			
-			var currDate=new Date();
+			 var currDate=new Date();
 			currDate.setHours(0,0,0,0);
 			
+			/* delete all but last 3 Incident Numbers */
 			for (var i=currIaIncNumList.length -1; i>= 3; i-- ){
 				currIaIncNumList.splice(i,1);
 			}
 
+			/* delete the incident numbers generated on previous day */
 			for (var i=currIaIncNumList.length -1; i>= 0; i-- ){
 				var genDate= new Date (currIaIncNumList[i].gendate);
 				if(genDate.getTime() !==  currDate.getTime() )currIaIncNumList.splice(i,1);
 			}
-
+			/* update the localStorage with updated incident number list */
 			localStorage.setItem('iaIncNumList', JSON.stringify(currIaIncNumList));
 			
+			/* display the incident number with Subject and Student Name*/
 			for (var i=0; i< currIaIncNumList.length; i++ ){
 				incSuggestion += '<br> <b>' + currIaIncNumList[i].incnum + '</b> (' + currIaIncNumList[i].sub + ' - ' + currIaIncNumList[i].name + ')';
-			}	
+			}
+			
+			
 		}
 		
 		$j('#incNumSuggestionDiv').html(incSuggestion == '' ? '':'Previously generated numbers: ' + incSuggestion);
@@ -62,15 +70,15 @@
         </div>
         <table>
             <tr>
-                <td>Student Number</td>
+                <td><label>Student Number:</label></td>
                 <td>{{ currentLog.student_number }}</td>
             </tr>
             <tr>
-                <td>Student Name</td>
+                <td><label>Student Name:</label></td>
                 <td>{{ currentLog.students_lastfirst }}</td>
             </tr>
             <tr>
-                <td>Entry Author</td>
+                <td><label>Entry Author:</label></td>
                 <td>{{ currentLog.entry_author }}</td>
             </tr>
         </table>
@@ -78,7 +86,8 @@
     <input type="hidden" data-ng-bind="currentLog.subject" name="UF-008008">
     <form class="log-edit-form cc-drawer-content" name="editLogEntryForm">
         <div class="log-edit-form fluid-form">
-            <div    data-ng-show="currentLog.subtype !== 'Minor' && !!currentLog.subtype">
+            <div    data-ng-show="currentLog.subtype !== 'Minor' && !!currentLog.subtype"
+                    data-ng-class="{'red-border': currentLog.bkt.behavior_incident_number && !currentLog.behavior_incident_number }">
                 <div>
                     <label>Behavior Incident Number <em>(s_ia_log_x.behavior_incident_number)</em></label>
                     <span>
@@ -94,6 +103,8 @@
                             Generate
                         </a>
                     </span>
+                    <small  data-ng-show="currentLog.bkt.behavior_incident_number && !currentLog.behavior_incident_number"
+                            class="red-text">Missing Behavior Incident Number</small>
                     <div class="feedback-confirm hidden" id="iaIncGenConfirm">Incident Number Generated successfully.</div>
     				<div class="feedback-confirm hidden" id="iaIncCopyConfirm">Incident Number Generated successfully, and copied to clipboard.<br> Please use this Behavior Incident Number for all other students involved in this incident</div>
     				<div class="feedback-alert hidden" id="iaIncPrevAlert">You must use the Behavior Incident Number that was generated for the <u>first</u> student involved in this incident.</div>
@@ -133,7 +144,7 @@
             </div>
             <h4>Urbandale Subtype and Infraction</h4>
             <div>
-                <div>
+                <div data-ng-class="{ 'red-border': currentLog.bkt.subtype && !currentLog.subtype }">
                     <label>Subtype <em>(log.subtype)</em>:</label>
                     <select name="subtype" data-ng-model="currentLog.subtype">
                         <option value=""></option>
@@ -141,21 +152,30 @@
                         <option value="Major">Major</option>
                         <option value="Serious">Serious</option>
                     </select>
+                    <small  data-ng-show="currentLog.bkt.subtype && !currentLog.subtype"
+                            class="red-text">
+                        Missing Subtype
+                    </small>
                 </div>
-                <div>
+                <div data-ng-class="{ 'red-border': currentLog.bkt.discipline_incidenttype && !currentLog.discipline_incidenttype }">
                     <label>Infraction <em>(log.discipline_incidenttype)</em>:</label>
                     <select name="discipline_incidenttype"
                             data-ng-model="currentLog.discipline_incidenttype"
                             data-ng-options="def.incident_code as def.incident_name for def in filteredDefinitions">
                         <option value="">-- choose incident type --</option>
                     </select>
+                    <small  data-ng-show="currentLog.bkt.discipline_incidenttype && !currentLog.discipline_incidenttype"
+                            class="red-text">
+                        Missing discipline incident type
+                    </small>
                 </div>
             </div>
             <h4 data-ng-show="currentLog.subtype !== 'Minor'">
                 State Subtype and Infraction 
                 <button type="button" data-ng-click="copySubAndInf()">Copy From Above</button>
             </h4>
-            <div  data-ng-show="currentLog.subtype !== 'Minor'">
+            <div  data-ng-show="currentLog.subtype !== 'Minor'"
+                    data-ng-class="{ 'red-border': currentLog.bkt.state_incident && (!currentLog.major_or_minor || !currentLog.problem_behavior) }">
                 <div>
                     <label>Major or Minor <em>(s_ia_log_x.major_or_minor)</em>:</label>
                     <select name="major_or_minor" data-ng-model="currentLog.major_or_minor">
@@ -203,6 +223,10 @@
     					<option value="33">33 - Other</option>
                     </select>
                 </div>
+                <small  data-ng-show="currentLog.bkt.state_incident && (!currentLog.major_or_minor || !currentLog.problem_behavior)"
+                        class="red-text">
+                    Copy incident type and subtype to state problem behavior and subtype
+                </small>
             </div>
             <h4></h4>
             <div>
@@ -212,19 +236,23 @@
                                 id="edit-log-staff-victim"
                                 name="staff_victim"
                                 data-ng-model="currentLog.staff_victim"
-                                data-ng-true-value="1"
-                                data-ng-false-value="0">
+                                data-ng-true-value="'1'"
+                                data-ng-false-value="'0'">
                         Staff Victim
                     </label>
-                    <label for="edit-log-suspension-letter">
+                    <label for="edit-log-suspension-letter" data-ng-class="{ 'red-border': currentLog.bkt.suspensionletter && currentLog.suspensionletter == 1 }">
                         <input  type="checkbox"
                                 id="edit-log-suspension-letter"
                                 name="suspensionletter"
                                 data-ng-model="currentLog.suspensionletter"
-                                data-ng-true-value="1"
-                                data-ng-false-value="0">
+                                data-ng-true-value="'1'"
+                                data-ng-false-value="'0'">
                         Suspension Letter
                     </label>
+                    <small  data-ng-show="currentLog.bkt.suspensionletter && currentLog.suspensionletter == 1"
+                            class="red-text">
+                        Marked for suspension letter
+                    </small>
                 </div>
             </div>
             <h4></h4>
@@ -242,7 +270,7 @@
             </div>
             <!--<div  data-ng-show="currentLog.subtype !== 'Minor'">-->
             <div>
-                <div>
+                <div data-ng-class="{ 'red-border': currentLog.bkt.incident_time && !currentLog.incident_time }">
                     <label>Infraction Time <em>(s_ia_log_x.incident_time)</em>:</label>
                     <input  type="text"
                             name="incident_time"
@@ -252,7 +280,10 @@
                             data-time-entry-output="string"
                             size="10"
                             maxlength="8">
-                            
+                    <small  data-ng-show="currentLog.bkt.incident_time && !currentLog.incident_time"
+                            class="red-text">
+                        Missing incident time
+                    </small>
                 </div>
             </div>
             <h4></h4>
@@ -280,7 +311,8 @@
                         <option value="OMO">Other Motivation</option>
                     </select>
                 </div>
-                <div data-ng-show="currentLog.subtype !== 'Minor'">
+                <div    data-ng-show="currentLog.subtype !== 'Minor'"
+                        data-ng-class="{ 'red-border': currentLog.bkt.state_motivation && !currentLog.motivation }">
                     <label>State Motivation <em>(s_ia_log_x.motivation)</em>:</label>
                     <select name="motivation"
                             data-ng-model="currentLog.motivation"
@@ -288,11 +320,15 @@
                         <option value="">(none selected)</option>
                     </select>
                     <button type="button" data-ng-click="copyMotivation()">Copy</button>
+                    <small  data-ng-show="currentLog.bkt.state_motivation && !currentLog.motivation"
+                            class="red-text">
+                        Missing state motivation
+                    </small>
                 </div>
             </div>
             <h4>Location</h4>
             <div>
-                <div>
+                <div data-ng-class="{ 'red-border': currentLog.bkt.location && !currentLog.location }">
                     <label>Location <em>(u_def_ext_log.incident_location)</em>:</label>
                     <select name="location" data-ng-model="currentLog.location">
                         <option value="">Entry Required</option>
@@ -316,8 +352,13 @@
                         <option value="LOR">Locker Room</option>
                         <option value="OTH">Other</option>
                     </select>
+                    <small  data-ng-show="currentLog.bkt.location && !currentLog.location"
+                            class="red-text">
+                        Missing location
+                    </small>
                 </div>
-                <div  data-ng-show="currentLog.subtype !== 'Minor'">
+                <div    data-ng-show="currentLog.subtype !== 'Minor'"
+                        data-ng-class="{ 'red-border': currentLog.bkt.state_location && currentLog.incident_location }">
                     <label>State Location <em>(s_ia_log_x.incident_location)</em>:</label>
                     <select name="incident_location" data-ng-model="currentLog.incident_location">
                         <option value="99">99 - Not applicable</option>
@@ -343,6 +384,10 @@
                         <option value="20">20 - Other Locations</option>
                     </select>
                     <button type="button" data-ng-click="copyLocation()">Copy</button>
+                    <small  data-ng-show="currentLog.bkt.state_location && currentLog.incident_location"
+                            class="red-text">
+                        Copy incident location to state incident location
+                    </small>
                 </div>
             </div>
             
@@ -355,7 +400,7 @@
                 </ul>
             </div>
             <div>
-                <div>
+                <div data-ng-class="{ 'red-border': (currentLog.bkt.consequence && !currentLog.consequence) || (currentLog.bkt.action_taken && !currentLog.consequence && currentLog.action_taken) }">
                     <label>Action Taken <em>(log.consequence)</em>:</label>
                     <select name="consequence"
                             data-ng-model="currentLog.consequence"
@@ -381,9 +426,18 @@
                         <option value="18">Other</option>
                         <option value="19">Individualized Behavior Support Plan</option>
                     </select>
+                    <small  data-ng-show="currentLog.bkt.consequence && !currentLog.consequence"
+                            class="red-text">
+                        Missing consequence
+                    </small>
+                    <small  data-ng-show="currentLog.bkt.action_taken && !currentLog.consequence && currentLog.action_taken"
+                            class="red-text">
+                        Missing consequence but state action_taken is filled out
+                    </small>
                 </div>
             </div>
-            <div  data-ng-show="currentLog.subtype !== 'Minor'">
+            <div    data-ng-show="currentLog.subtype !== 'Minor'"
+                    data-ng-class="{ 'red-border': currentLog.bkt.state_action_taken && currentLog.action_taken !== currentLog.consequence }">
                 <div>
                     <label>State Action Taken <em>(s_ia_log_x.action_taken)</em>:</label>
                     <select name="action_taken" data-ng-model="currentLog.action_taken">
@@ -409,6 +463,10 @@
                         <option value="19">Individualized Behavior Support Plan</option>
                     </select>
                     <button type="button" data-ng-click="copyActionTaken()">Copy</button>
+                    <small  data-ng-show="currentLog.bkt.state_action_taken && currentLog.action_taken !== currentLog.consequence"
+                            class="red-text">
+                        State action does not match consequence
+                    </small>
                 </div>
             </div>
             <h4></h4>
@@ -433,14 +491,15 @@
                 </div>
             </div>
             
-            <div  data-ng-show="
-                        currentLog.subtype !== 'Minor' 
-                        && (
-                            currentLog.consequence === '3' 
-                            || currentLog.consequence === '2' 
-                            || currentLog.consequence === '1'
-                            || currentLog.consequence === '4'
-                    )">
+            <div    data-ng-show="
+                            currentLog.subtype !== 'Minor' 
+                            && (
+                                currentLog.consequence === '3' 
+                                || currentLog.consequence === '2' 
+                                || currentLog.consequence === '1'
+                                || currentLog.consequence === '4'
+                        )"
+                    data-ng-class="{ 'red-border': currentLog.bkt.state_duration && (!currentLog.date_of_removal || !currentLog.duration_assigned) }">
                 <div>
                     <label>Date of Removal <em>(s_ia_log_x.date_of_removal)</em>:</label>
                     <input  type="text"
@@ -450,7 +509,10 @@
                             placeholder="MM/DD/YYYY"
                             size="10"
                             maxlength="10">
-                    <span class="feedback-alert">Required if ISS, OSS or Expulsion</span>
+                    <span   data-ng-show="!currentLog.date_of_removal && (currentLog.action_taken == 1 || currentLog.action_taken == 2 || currentLog.action_taken == 3 || currentLog.action_taken == 4)"
+                            class="feedback-alert">
+                        Required if ISS, OSS or Expulsion
+                    </span>
                 </div>
                 <div>
                     <label>Duration Assigned <em>(s_ia_log_x.duration_assigned)</em>:</label>
@@ -459,11 +521,13 @@
                             data-ng-model="currentLog.duration_assigned"
                             data-pss-validation-field="log.s_ia_log_x.duration_assigned"
                             size="5"> <em>format: 000.0</em>
-                    <span class="feedback-alert">Required if ISS, OSS or Expulsion</span>
+                    <span   data-ng-show="!currentLog.duration_assigned && (currentLog.action_taken == 1 || currentLog.action_taken == 2 || currentLog.action_taken == 3 || currentLog.action_taken == 4)"
+                            class="feedback-alert">
+                        Required if ISS, OSS or Expulsion
+                    </span>
                 </div>
             </div>
             
-            <!-- <button type="button" data-ng-click="checkvalues()">Check</button> -->   
         </div>
         <div class="button-row">
             <button type="button" data-ng-click="closeDrawerNoSave()">Cancel</button>
